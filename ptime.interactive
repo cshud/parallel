@@ -1,0 +1,97 @@
+Script started on Wed Sep 12 18:55:50 2012
+[we17860:PTime/Socket/EXAMPLE] bylaska% p[K./ptime.py < scf.qn.input 
+Enter hostsports: Enter initial xyz filename: Enter final xyz filename: Enter trajectory xyz filename: Enter theory: Enter basis: Enter mult: Enter charge: Is this a linear molecule? 
+Enter timestep in au: Enter length of parallel time segment (M): Enter total number of timesteps (Ntimesteps): Enter maximum residual error (residerr): Is this a parallel time job? 
+Is this a preconditioned parallel time job?           ****************************************************
+          *                                                  *
+          *      Parallel in Time Molecular Dynamics         *
+          *                                                  *
+          *     [      Velocity Verlet Integration    ]      *
+          *     [     Master/Slave Parallelization    ]      *
+          *     [     Python Socket Implementation    ]      *
+          *                                                  *
+          *            version #1.00   02/03/12              *
+          *                                                  *
+          ****************************************************
+          >>> job started at        2012-9-12-18:56  <<<
+
+number of HOSTSPORTS = 2
+HOSTSPORTS = ['localhost:50001', 'localhost:50002']
+
+Parallel in Time Job             = True
+
+theory/basis= scf/3-21G
+
+number of atoms                  = 14
+length of parallel time segments = 10
+timestep                         = 5.0
+Total number of timesteps        = 20
+relative energy threshold        = 1.0
+maximum residual error           = 0.0001
+linear molecule                  = False
+
+initial xyz filename    =  HCl_4water.00.xyz
+final   xyz filename    =  HCl_4water.01.xyz
+trajectory xyz filename =  HCl_4water.traj.xyz
+
+intitial geometry (a.u.):
+1  Cl   -1.0267   2.1687   3.3592    0.0000   0.0000   0.0000 - mass =    34.97
+2  H    0.3130   1.3599   1.2843    0.0000   0.0000   0.0000 - mass =     1.01
+3  O    3.2161   5.9223  -0.6010    0.0000   0.0000   0.0000 - mass =    15.99
+4  H    4.7792   5.2786  -1.4044    0.0000   0.0000   0.0000 - mass =     1.01
+5  H    3.5459   5.7920   1.2359    0.0000   0.0000   0.0000 - mass =     1.01
+6  O   -2.8598  -3.5591  -0.1445    0.0000   0.0000   0.0000 - mass =    15.99
+7  H   -1.0903  -3.6298   0.4604    0.0000   0.0000   0.0000 - mass =     1.01
+8  H   -3.8331  -2.9323   1.3255    0.0000   0.0000   0.0000 - mass =     1.01
+9  O   -5.4676   4.0443  -1.5384    0.0000   0.0000   0.0000 - mass =    15.99
+10  H   -3.8239   4.9388  -1.5236    0.0000   0.0000   0.0000 - mass =     1.01
+11  H   -6.7450   5.4111  -1.5804    0.0000   0.0000   0.0000 - mass =     1.01
+12  O    1.7082  -1.1874  -4.0486    0.0000   0.0000   0.0000 - mass =    15.99
+13  H    2.9679  -0.8326  -2.7115    0.0000   0.0000   0.0000 - mass =     1.01
+14  H    0.2674  -0.0628  -3.6459    0.0000   0.0000   0.0000 - mass =     1.01
+
+
+          ================ iteration =========================
+
+          >>> iteration started at  2012-9-12-18:56  <<<
+
+   iter.             Energy    Potential      Kinetic   Temperature  Iterations
+   ----------------------------------------------------------------------------
+      10        -760.208394  -760.211242     0.002847          50.0           2
+      20        -760.208398  -760.215097     0.006699          83.7           3
+          >>> iteration ended at    2012-9-12-18:56  <<<
+
+
+final geometry (a.u.):
+1  Cl   -1.0252   2.1678   3.3572    0.0000  -0.0000  -0.0000 - mass =    34.97
+2  H    0.2612   1.3944   1.3538   -0.0009   0.0006   0.0012 - mass =     1.01
+3  O    3.2193   5.9196  -0.5989    0.0001  -0.0000   0.0000 - mass =    15.99
+4  H    4.7415   5.3012  -1.3983   -0.0006   0.0004   0.0000 - mass =     1.01
+5  H    3.5291   5.8067   1.1983   -0.0003   0.0003  -0.0006 - mass =     1.01
+6  O   -2.8579  -3.5576  -0.1405    0.0000   0.0000   0.0001 - mass =    15.99
+7  H   -1.1282  -3.6392   0.4341   -0.0006  -0.0002  -0.0005 - mass =     1.01
+8  H   -3.8230  -2.9454   1.2850    0.0001  -0.0002  -0.0007 - mass =     1.01
+9  O   -5.4667   4.0485  -1.5386    0.0000   0.0001  -0.0000 - mass =    15.99
+10  H   -3.8567   4.9119  -1.5221   -0.0005  -0.0004   0.0000 - mass =     1.01
+11  H   -6.7235   5.3722  -1.5791    0.0003  -0.0006   0.0000 - mass =     1.01
+12  O    1.7079  -1.1843  -4.0447   -0.0000   0.0001   0.0001 - mass =    15.99
+13  H    2.9501  -0.8469  -2.7484   -0.0002  -0.0002  -0.0006 - mass =     1.01
+14  H    0.2860  -0.0994  -3.6692    0.0002  -0.0006  -0.0004 - mass =     1.01
+
+average iterations     = 2.5
+maximum speedup        = 4.0
+approximate speedup    = 0.649315524636
+approximate efficiency = 0.162328881159
+
+-----------------
+cputime in seconds
+prologue       :  0.000848054885864
+main loop      :  37.2322559357
+epilogue       :  0.000462055206299
+total          :  37.2335660458
+cputime/step   :  1.86161279678
+cpuserial/step :  1.20877408981
+
+[we17860:PTime/Socket/EXAMPLE] bylaska% ^Dexit
+
+Script done on Wed Sep 12 18:57:08 2012

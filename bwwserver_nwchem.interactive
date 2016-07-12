@@ -1,0 +1,60 @@
+Script started on Wed Sep 12 18:54:56 2012
+[we17860:PTime/Socket/EXAMPLE] bylaska% mkdir serverdata
+[we17860:PTime/Socket/EXAMPLE] bylaska% cd serverdata
+[we17860:Socket/EXAMPLE/serverdata] bylaska% ../bwwserver_nwchem.py start 50001 &
+[1] 3197
+[we17860:Socket/EXAMPLE/serverdata] bylaska% wbwserver program started at  2012-9-12-18:55  on port  50001
+              - port  50001  using  []
+
+[we17860:Socket/EXAMPLE/serverdata] bylaska% ../bwwserver_nwchem.py start 50001 &1 &[K2 &
+[2] 3202
+[we17860:Socket/EXAMPLE/serverdata] bylaska% wbwserver program started at  2012-9-12-18:55  on port  50002
+              - port  50002  using  []
+
+[we17860:Socket/EXAMPLE/serverdata] bylaska% Connected to  ('127.0.0.1', 50777)  on port  50001
+recv,calc,send times= 0.00134611129761 1.20577788353 0.000338077545166  on port  50001
+Connected to  ('127.0.0.1', 50781)  on port  50001
+Connected to  ('127.0.0.1', 50782)  on port  50002
+sstimes= [0]
+recv,calc,send times= 0.00240111351013 7.12051892281 0.00127196311951  on port  50001
+sstimes= [0]
+recv,calc,send times= 0.00393295288086 7.12374901772 0.00116300582886  on port  50002
+Connected to  ('127.0.0.1', 50813)  on port  50001
+Connected to  ('127.0.0.1', 50814)  on port  50002
+sstimes= [0]
+recv,calc,send times= 0.00350189208984 7.02494502068 0.00126504898071  on port  50002
+sstimes= [0]
+recv,calc,send times= 0.00253987312317 7.07033014297 0.0011899471283  on port  50001
+Connected to  ('127.0.0.1', 50845)  on port  50001
+Connected to  ('127.0.0.1', 50846)  on port  50002
+sstimes= [0]
+recv,calc,send times= 0.00356197357178 7.28681921959 0.00116395950317  on port  50002
+sstimes= [0]
+recv,calc,send times= 0.00246405601501 7.30579400063 0.00122594833374  on port  50001
+Connected to  ('127.0.0.1', 50877)  on port  50001
+Connected to  ('127.0.0.1', 50878)  on port  50002
+sstimes= [0]
+recv,calc,send times= 0.00275993347168 7.11600422859 0.00118088722229  on port  50001
+sstimes= [0]
+recv,calc,send times= 0.00326108932495 7.13287210464 0.00117802619934  on port  50002
+Connected to  ('127.0.0.1', 50909)  on port  50001
+Connected to  ('127.0.0.1', 50910)  on port  50002
+sstimes= [0]
+recv,calc,send times= 0.00256991386414 6.92537593842 0.0013861656189  on port  50001
+sstimes= [0]
+recv,calc,send times= 0.00359010696411 7.19575691223 0.00123500823975  on port  50002
+../bwwserver_nwchem.py stop 50001
+wbwserver program stopped at  2012-9-12-18:56  on port  50001
+[we17860:Socket/EXAMPLE/serverdata] bylaska% Connected to  ('127.0.0.1', 50941)  on port  50001
+wbwserver program ended at  2012-9-12-18:56  on port  50001
+
+[1]    Done                          ../bwwserver_nwchem.py start 50001
+[we17860:Socket/EXAMPLE/serverdata] bylaska% ../bwwserver_nwchem.py stop 50001[K2
+wbwserver program stopped at  2012-9-12-18:57  on port  50002
+Connected to  ('127.0.0.1', 50942)  on port  50002
+wbwserver program ended at  2012-9-12-18:57  on port  50002
+[we17860:Socket/EXAMPLE/serverdata] bylaska% 
+[2]    Done                          ../bwwserver_nwchem.py start 50002
+[we17860:Socket/EXAMPLE/serverdata] bylaska% ^Dexit
+
+Script done on Wed Sep 12 18:57:06 2012

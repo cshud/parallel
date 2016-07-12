@@ -1,0 +1,17 @@
+['localhost:50001','spokane:50001:32']
+HCl_4water.00.xyz
+HCl_4water.01.xyz
+HCl_4water.traj.xyz
+mp2
+6-31G*
+1
+0
+False
+5.0
+10
+20
+1.0e-4
+True
+False
+
+
