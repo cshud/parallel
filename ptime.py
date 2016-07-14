@@ -40,7 +40,7 @@ def_masses = [1.007825, 4.00260, 7.0160, 9.01218, 11.00931, 12.0, 14.00307, 15.9
 
 #############################################
 # #
-#             my_sockconnect                #
+# my_sockconnect                #
 #                                           #
 #############################################
 #
@@ -111,14 +111,14 @@ def runcalcs(hostsports, job, xs, mstart=None):
         istart = 0
         for s in ss:
             iend = istart + jobcount[i + 1]
-            s.sendall(pickle.dumps(jobs[istart:iend]) + 'ericdone')
+            s.sendall(pickle.dumps(jobs[istart:iend]) + 'ericdone')  #send data
             istart = iend
             i += 1
         for s in ss:
             msg = ''
             done = False
             while not done:
-                data = s.recv(1024)
+                data = s.recv(1024)  #receive data
                 msg = msg + data
                 done = msg[len(msg) - 8:len(msg)] == 'ericdone'
             msg = msg[:len(msg) - 8]
@@ -265,7 +265,7 @@ def mdverlet_serial(hostsports, job, M, timestep, Perror, maxresiderr, mass, x0,
     keout = 0.0
     for ii in range(nion):
         keout += 0.5 * mass[ii] * (
-        v1[3 * ii] * v1[3 * ii] + v1[3 * ii + 1] * v1[3 * ii + 1] + v1[3 * ii + 2] * v1[3 * ii + 2])
+            v1[3 * ii] * v1[3 * ii] + v1[3 * ii + 1] * v1[3 * ii + 1] + v1[3 * ii + 2] * v1[3 * ii + 2])
     eout = uout + keout
 
     return (x1, v1, a1, eout, keout, uout, iterations)
@@ -308,7 +308,7 @@ def mdverlet_parallel(hostsports, job, M, timestep, Perror, maxresiderr, mass, x
     ke0 = 0.0
     for ii in range(nion):
         ke0 += 0.5 * mass[ii] * (
-        v0[3 * ii] * v0[3 * ii] + v0[3 * ii + 1] * v0[3 * ii + 1] + v0[3 * ii + 2] * v0[3 * ii + 2])
+            v0[3 * ii] * v0[3 * ii] + v0[3 * ii + 1] * v0[3 * ii + 1] + v0[3 * ii + 2] * v0[3 * ii + 2])
     e0 = u0 + ke0
 
     errorx = [1.0] * (M + 1);
@@ -373,7 +373,7 @@ def mdverlet_parallel(hostsports, job, M, timestep, Perror, maxresiderr, mass, x
             vres = 0.0
             for i in range(n):
                 dx = xall[m1][i] - (
-                xall[m1 - 1][i] + vall[m1 - 1][i] * timestep + 0.5 * aall[m1 - 1][i] * timestep * timestep)
+                    xall[m1 - 1][i] + vall[m1 - 1][i] * timestep + 0.5 * aall[m1 - 1][i] * timestep * timestep)
                 dv = vall[m1][i] - (vall[m1 - 1][i] + 0.5 * (aall[m1 - 1][i] + aall[m1][i]) * timestep)
                 fxall[m1][i] = dx;
                 fvall[m1][i] = dv
@@ -453,8 +453,8 @@ def mdverlet_parallel(hostsports, job, M, timestep, Perror, maxresiderr, mass, x
                 keall[m1] = 0.0
                 for ii in range(nion):
                     keall[m1] += 0.5 * mass[ii] * (
-                    vall[m1][3 * ii] * vall[m1][3 * ii] + vall[m1][3 * ii + 1] * vall[m1][3 * ii + 1] + vall[m1][
-                        3 * ii + 2] * vall[m1][3 * ii + 2])
+                        vall[m1][3 * ii] * vall[m1][3 * ii] + vall[m1][3 * ii + 1] * vall[m1][3 * ii + 1] + vall[m1][
+                            3 * ii + 2] * vall[m1][3 * ii + 2])
 
             if (abs(residx0 + residv0 - residx - residv) > maxresiderr):
                 mstart = mstart0;
@@ -584,7 +584,7 @@ def mdverlet_parallel2(hostsports, job, jobcoarse, M, timestep, Perror, maxresid
     for m1 in range(M):
         for i in range(n):
             xall[m1 + 1][i] = xall[m1][i] + vall[m1][i] * timestep + 0.5 * aall2[m1][i] * timestep * timestep
-        result = runcalcs(hostsports, jobcoarse, [xall[m1 + 1]])
+        result = runcalcs(hostsports, jobcoarse, [xall[m1 + 1]])  #result：from server cal
         f0 = result[0][1]
         for ii in range(nion):
             aall2[m1 + 1][3 * ii] = f0[3 * ii] / mass[ii]
@@ -598,7 +598,7 @@ def mdverlet_parallel2(hostsports, job, jobcoarse, M, timestep, Perror, maxresid
         aall[0][i] = a0[i]
     uall[0] = u0
     mstart = 1
-    result = runcalcs(hostsports, job, xall, mstart)
+    result = runcalcs(hostsports, job, xall, mstart)  #result：from server cal
     it += 1
     for m1 in range(mstart, M + 1):
         uall[m1] = result[m1 - mstart][0]
@@ -610,8 +610,9 @@ def mdverlet_parallel2(hostsports, job, jobcoarse, M, timestep, Perror, maxresid
         keall[m1] = 0.0
         for ii in range(nion):
             keall[m1] += 0.5 * mass[ii] * (
-            vall[m1][3 * ii] * vall[m1][3 * ii] + vall[m1][3 * ii + 1] * vall[m1][3 * ii + 1] + vall[m1][3 * ii + 2] *
-            vall[m1][3 * ii + 2])
+                vall[m1][3 * ii] * vall[m1][3 * ii] + vall[m1][3 * ii + 1] * vall[m1][3 * ii + 1] + vall[m1][
+                    3 * ii + 2] *
+                vall[m1][3 * ii + 2])
 
     mstart = 1
     residx0 = 1.0e9;
@@ -635,7 +636,7 @@ def mdverlet_parallel2(hostsports, job, jobcoarse, M, timestep, Perror, maxresid
             vres = 0.0
             for i in range(n):
                 dx = xall[m1][i] - (
-                xall[m1 - 1][i] + vall[m1 - 1][i] * timestep + 0.5 * aall[m1 - 1][i] * timestep * timestep)
+                    xall[m1 - 1][i] + vall[m1 - 1][i] * timestep + 0.5 * aall[m1 - 1][i] * timestep * timestep)
                 dv = vall[m1][i] - (vall[m1 - 1][i] + 0.5 * (aall[m1 - 1][i] + aall[m1][i]) * timestep)
                 fxall[m1][i] = dx;
                 fvall[m1][i] = dv
@@ -754,7 +755,7 @@ def mdverlet_parallel2(hostsports, job, jobcoarse, M, timestep, Perror, maxresid
                 for i in range(n):
                     xall[m1 + 1][i] = wall[m1 + 1][i] + xall[m1][i] + vall[m1][i] * timestep + 0.5 * aall2[m1][
                         i] * timestep * timestep
-                result = runcalcs(hostsports, jobcoarse, [xall[m1 + 1]])
+                result = runcalcs(hostsports, jobcoarse, [xall[m1 + 1]])  #result：from server cal
                 for ii in range(nion):
                     aall2[m1 + 1][3 * ii] = result[0][1][3 * ii] / mass[ii]
                     aall2[m1 + 1][3 * ii + 1] = result[0][1][3 * ii + 1] / mass[ii]
@@ -764,7 +765,7 @@ def mdverlet_parallel2(hostsports, job, jobcoarse, M, timestep, Perror, maxresid
 
 
             ### compute F(x) ###
-            result = runcalcs(hostsports, job, xall, mstart)
+            result = runcalcs(hostsports, job, xall, mstart)  #result：from server cal
             it += 1
             for m1 in range(mstart, M + 1):
                 uall[m1] = result[m1 - mstart][0]
@@ -776,8 +777,8 @@ def mdverlet_parallel2(hostsports, job, jobcoarse, M, timestep, Perror, maxresid
                 keall[m1] = 0.0
                 for ii in range(nion):
                     keall[m1] += 0.5 * mass[ii] * (
-                    vall[m1][3 * ii] * vall[m1][3 * ii] + vall[m1][3 * ii + 1] * vall[m1][3 * ii + 1] + vall[m1][
-                        3 * ii + 2] * vall[m1][3 * ii + 2])
+                        vall[m1][3 * ii] * vall[m1][3 * ii] + vall[m1][3 * ii + 1] * vall[m1][3 * ii + 1] + vall[m1][
+                            3 * ii + 2] * vall[m1][3 * ii + 2])
 
             if (abs(residx0 + residv0 - residx - residv) > maxresiderr):
                 mstart = mstart0;
@@ -807,11 +808,11 @@ def mdverlet_parallel2(hostsports, job, jobcoarse, M, timestep, Perror, maxresid
 ########################### main program ##################################
 ###########################################################################
 
-hostsports = eval(raw_input("Enter hostsports: "))
-xyzfilename0 = raw_input("Enter initial xyz filename: ")
-xyzfilename1 = raw_input("Enter final xyz filename: ")
-xyzfilename2 = raw_input("Enter trajectory xyz filename: ")
-theory = raw_input("Enter theory: ")
+hostsports = eval(raw_input("Enter hostsports: "))  #['localhost:50001','localhost:50002']
+xyzfilename0 = raw_input("Enter initial xyz filename: ")  #HCl_4water.00.xyz
+xyzfilename1 = raw_input("Enter final xyz filename: ")  #HCl_4water.01.xyz
+xyzfilename2 = raw_input("Enter trajectory xyz filename: ")  #HCl_4water.traj.xyz
+theory = raw_input("Enter theory: ")  #scf
 if (theory == 'lj'):
     epsilon = eval(raw_input("Enter epsilon: "))
     rmin = eval(raw_input("Enter rmin: "))
@@ -821,19 +822,19 @@ elif (theory == 'spring'):
     rmin = eval(raw_input("Enter rmin: "))
     basis = 'md potential'
 else:
-    basis = raw_input("Enter basis: ")
-    mult = eval(raw_input("Enter mult: "))
-    charge = eval(raw_input("Enter charge: "))
+    basis = raw_input("Enter basis: ")  #3-21G
+    mult = eval(raw_input("Enter mult: "))  #1
+    charge = eval(raw_input("Enter charge: "))  #0
 
-islinear = eval(raw_input("Is this a linear molecule? "))
+islinear = eval(raw_input("Is this a linear molecule? "))  #False
 print
-timestep = eval(raw_input("Enter timestep in au: "))
-m = eval(raw_input("Enter length of parallel time segment (M): "))
-Ntimesteps = eval(raw_input("Enter total number of timesteps (Ntimesteps): "))
-residerr = eval(raw_input("Enter maximum residual error (residerr): "))
-ParallelTimeJob = eval(raw_input("Is this a parallel time job? "))
+timestep = eval(raw_input("Enter timestep in au: "))  #5.0
+m = eval(raw_input("Enter length of parallel time segment (M): "))  #10
+Ntimesteps = eval(raw_input("Enter total number of timesteps (Ntimesteps): "))  #20
+residerr = eval(raw_input("Enter maximum residual error (residerr): "))  #1.0e-4
+ParallelTimeJob = eval(raw_input("Is this a parallel time job? "))  #True
 print
-precondition = eval(raw_input("Is this a preconditioned parallel time job? "))
+precondition = eval(raw_input("Is this a preconditioned parallel time job? "))  #False
 if precondition:
     pretheory = raw_input("Enter preconditioning theory: ")
     if (pretheory == 'lj'):
@@ -867,9 +868,13 @@ for ii in range(nion):
     x0.append(eval(line[2]) / 0.529177);
     x0.append(eval(line[3]) / 0.529177)
     if (len(line) == 7):
-        v0.append(eval(line[4]) / 0.529177); v0.append(eval(line[5]) / 0.529177); v0.append(eval(line[6]) / 0.529177)
+        v0.append(eval(line[4]) / 0.529177);
+        v0.append(eval(line[5]) / 0.529177);
+        v0.append(eval(line[6]) / 0.529177)
     else:
-        v0.append(0.0); v0.append(0.0); v0.append(0.0)
+        v0.append(0.0);
+        v0.append(0.0);
+        v0.append(0.0)
 xyzfile.close()
 
 #ParallelTimeJob = True
@@ -902,6 +907,7 @@ else:
     nwjob['mult'] = mult
     nwjob['charge'] = charge
 
+#precondition ：false
 if precondition:
     coarsenwjob = {}
     coarsenwjob['theory'] = pretheory
@@ -962,8 +968,8 @@ print
 print "intitial geometry (a.u.):"
 for ii in range(nion):
     print '%d  %s  %8.4f %8.4f %8.4f  %8.4f %8.4f %8.4f - mass = %8.2f' % (
-    ii + 1, nwjob['symbols'][ii], x0[3 * ii], x0[3 * ii + 1], x0[3 * ii + 2], v0[3 * ii], v0[3 * ii + 1],
-    v0[3 * ii + 2], mass[ii] / 1822.89)
+        ii + 1, nwjob['symbols'][ii], x0[3 * ii], x0[3 * ii + 1], x0[3 * ii + 2], v0[3 * ii], v0[3 * ii + 1],
+        v0[3 * ii + 2], mass[ii] / 1822.89)
 print
 print
 print "          ================ iteration ========================="
@@ -978,7 +984,7 @@ xyzfile = open(xyzfilename2, 'w')
 xyzfile.write('%d\n\n' % nion)
 for ii in range(nion):
     xyzfile.write('%s  %e %e %e\n' % (
-    nwjob['symbols'][ii], x0[3 * ii] * 0.529177, x0[3 * ii + 1] * 0.529177, x0[3 * ii + 2] * 0.529177))
+        nwjob['symbols'][ii], x0[3 * ii] * 0.529177, x0[3 * ii + 1] * 0.529177, x0[3 * ii + 2] * 0.529177))
 xyzfile.flush()
 
 itave = 0
@@ -988,7 +994,7 @@ cpu2 = time.time()
 
 ## calculate initial acceleration ##
 a0 = [0] * 3 * nion
-result = runcalcs(hostsports, nwjob, [x0])
+result = runcalcs(hostsports, nwjob, [x0])  #client->server with data nwjob
 u0 = result[0][0]
 for ii in range(nion):
     a0[3 * ii] = result[0][1][3 * ii] / mass[ii]
@@ -998,6 +1004,7 @@ cpu2a0 = time.time()
 
 ## calculate initial coarse acceleration ##
 acoarse0 = [0] * 3 * nion
+#preconditon：False
 if precondition:
     result = runcalcs(hostsports, coarsenwjob, [x0])
     for ii in range(nion):
@@ -1008,6 +1015,7 @@ if precondition:
 for it in range(Nit):
     if ParallelTimeJob:
         if precondition:
+            #execute this
             x1, v1, a1, acoarse1, e1, ke1, u1, iterations = mdverlet_parallel2(hostsports, nwjob, coarsenwjob, m,
                                                                                timestep, Perror, residerr, mass, x0, v0,
                                                                                a0, u0, acoarse0)
@@ -1046,7 +1054,7 @@ for it in range(Nit):
     xyzfile.write('%d\n\n' % nion)
     for ii in range(nion):
         xyzfile.write('%s  %e %e %e\n' % (
-        nwjob['symbols'][ii], x0[3 * ii] * 0.529177, x0[3 * ii + 1] * 0.529177, x0[3 * ii + 2] * 0.529177))
+            nwjob['symbols'][ii], x0[3 * ii] * 0.529177, x0[3 * ii + 1] * 0.529177, x0[3 * ii + 2] * 0.529177))
     xyzfile.flush()
 
 xyzfile.close()
@@ -1057,8 +1065,8 @@ print
 print "final geometry (a.u.):"
 for ii in range(nion):
     print '%d  %s  %8.4f %8.4f %8.4f  %8.4f %8.4f %8.4f - mass = %8.2f' % (
-    ii + 1, nwjob['symbols'][ii], x0[3 * ii], x0[3 * ii + 1], x0[3 * ii + 2], v0[3 * ii], v0[3 * ii + 1],
-    v0[3 * ii + 2], mass[ii] / 1822.89)
+        ii + 1, nwjob['symbols'][ii], x0[3 * ii], x0[3 * ii + 1], x0[3 * ii + 2], v0[3 * ii], v0[3 * ii + 1],
+        v0[3 * ii + 2], mass[ii] / 1822.89)
 print
 
 ## print out final geometry ##
@@ -1066,8 +1074,8 @@ xyzfile = open(xyzfilename1, 'w')
 xyzfile.write('%d\n\n' % nion)
 for ii in range(nion):
     xyzfile.write('%s  %18.9e %18.9e %18.9e %18.9e %18.9e %18.9e\n' % (
-    nwjob['symbols'][ii], x0[3 * ii] * 0.529177, x0[3 * ii + 1] * 0.529177, x0[3 * ii + 2] * 0.529177,
-    v0[3 * ii] * 0.529177, v0[3 * ii + 1] * 0.529177, v0[3 * ii + 2] * 0.529177))
+        nwjob['symbols'][ii], x0[3 * ii] * 0.529177, x0[3 * ii + 1] * 0.529177, x0[3 * ii + 2] * 0.529177,
+        v0[3 * ii] * 0.529177, v0[3 * ii + 1] * 0.529177, v0[3 * ii + 2] * 0.529177))
 xyzfile.close()
 
 cpu4 = time.time()
