@@ -1,6 +1,6 @@
 __author__ = 'ShuD'
 
-import sys,time,pickle,math
+import sys, time, pickle, math
 #### atomic symbols ####
 def_symbols = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K',
                'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr',
@@ -22,114 +22,16 @@ def_masses = [1.007825, 4.00260, 7.0160, 9.01218, 11.00931, 12.0, 14.00307, 15.9
               243.0614, 247.0704, 247.0703, 251.0796, 252.0829, 257.0950, 258.0986, 259.1009, 262.1100, 261.1087,
               262.1138, 266.1219, 262.1229, 267.1318, 268.1388]
 
+
 def util_date():
     tt = time.localtime()
     dd = "%d-%d-%d-%d:%d" % (tt[0], tt[1], tt[2], tt[3], tt[4])
     return dd
 
 
-def run_simulation(x):
-    if (x['theory'] == 'lj'):
-        data = run_ljgradient(x)
-    if (x['theory'] == 'spring'):
-        data = run_spring(x)
-    return data
-
-
-def run_jobs(jobs):
-    egrads = []
-    njobs = len(jobs)
-    if (njobs == 1):
-        egrads += [run_simulation(jobs[0])]
-    else:
-        ## route to ss sockets, or route to ss sockets and calculate locally ##
-        ok = (not onlyroute) or (len(ss) > 0)
-        if (ok):
-            if (onlyroute):
-                ns = len(ss)
-                jobcount = [0] * ns
-                for i in range(ns):                  jobcount[i] = int(njobs * sscpus[i] / float(ncpus))
-                for i in range(njobs - sum(jobcount)): jobcount[i % ns] += 1
-                #jobcount = [njobs/ns]*ns
-                #for i in range(njobs%ns): jobcount[i] += 1
-
-                ## send jobs to ss ##
-                i = -1
-                istart = 0
-                for s in ss:
-                    iend = istart + jobcount[i + 1]
-                    s.sendall(pickle.dumps(jobs[istart:iend]) + 'ericdone')
-                    istart = iend
-                    i += 1
-            else:
-                ns = len(ss) + 1
-                sscpus = [1] + sscpus
-                ncpus += 1
-                jobcount = [0] * ns
-                for i in range(ns):                  jobcount[i] = int(njobs * sscpus[i] / float(ncpus))
-                for i in range(njobs - sum(jobcount)): jobcount[i % ns] += 1
-
-                ## send jobs to ss ##
-                i = 0
-                istart = jobcount[i]
-                for s in ss:
-                    iend = istart + jobcount[i + 1]
-                    s.sendall(pickle.dumps(jobs[istart:iend]) + 'ericdone')
-                    istart = iend
-                    i += 1
-
-                ## cacluate jobs locally ##
-                for i in range(jobcount[0]): egrads += [run_simulation(PORT, jobs[i])]
-
-            ## read from ss and close. Also keep track of badjobs and goodports ##
-            if (onlyroute):
-                i = -1
-                istart = 0
-            else:
-                i = 0
-                istart = jobcount[i]
-            j = 0
-            badjobs = []
-            newhostsports = []
-            for s in ss:
-                cpu1 = time.time()
-                iend = istart + jobcount[i + 1]
-                msg = ''
-                done = False
-                while not done:
-                    data = s.recv(1024)
-                    msg = msg + data
-                    done = msg[len(msg) - 8:len(msg)] == 'ericdone'
-                msg = msg[:len(msg) - 8]
-                data = pickle.loads(msg)
-                egrads += data
-                if (data == [None]):
-                    badjobs.append(jobs[istart:iend])
-                else:
-                    newhostsports.append(hostsports[j])
-                istart = iend
-                i += 1
-                j += 1
-                s.close()
-                cpu2 = time.time()
-                sstimes[j - 1] = cpu2 - cpu1
-
-            print 'sstimes=', sstimes[:ns]
-            ## rerun badjobs ##
-            for j in range(len(badjobs)):
-                data = run_jobs(onlyroute, PORT, newhostsports, badjobs[j])
-                i = egrads.index(None)
-                egrads = egrads[:i] + data + egrads[i + 1:]
-
-        ## failed because onlyroute==True and ss==[] ##
-        else:
-            egrads = [None]
-
-    return egrads
-
 #############################################
-#                                           #
-#             run_spring                    #
+# #
+# run_spring                    #
 #                                           #
 #############################################
 #
@@ -193,6 +95,7 @@ def run_ljgradient(job):
             f[3 * jj + 2] += dz * (dvdr / r)
     return (e, f)
 
+
 #######################################################
 #                                                     #
 #                   runcalcs                          #
@@ -202,58 +105,22 @@ def run_ljgradient(job):
 # This routine calculates the energy-gradient using the dictionary job
 # of the  list of xs geometries.
 #
-def runcalcs(hostsports, job, xs, mstart=None):
-    if (mstart == None): mstart = 0
+def runcalcs(job, xs):
+    mstart = 0
     egrads = []
     jobs = []
     for i in range(mstart, len(xs)):
         jobs.append(job.copy())
         jobs[i - mstart]['xyz'] = xs[i]
-    njobs = len(jobs);
-    ## set up connections ###
-    ss = [];
-    sscpus = [];
-    ncpus = 0
-    for hp in hostsports[:njobs]:
-        s = my_sockconnect(hp)
-        if (s != None):
-            ss.append(s)
-            l = hp.index(':');
-            r = hp.rindex(':')
-            if (l == r):
-                cpus = 1
-            else:
-                cpus = eval(hp[r + 1:])
-            sscpus.append(cpus);
-            ncpus += cpus
-    if (len(ss) > 0):
-        ns = len(ss)
-        jobcount = [0] * ns
-        for i in range(ns):
-            jobcount[i] = int(njobs * sscpus[i] / float(ncpus))
-        for i in range(njobs - sum(jobcount)):
-            jobcount[i % ns] += 1
-        ## send jobs to connections ##
-        i = -1;
-        istart = 0
-        for s in ss:
-            iend = istart + jobcount[i + 1]
-            s.sendall(pickle.dumps(jobs[istart:iend]) + 'ericdone')  #send data
-            istart = iend
-            i += 1
-        for s in ss:
-            msg = ''
-            done = False
-            while not done:
-                data = s.recv(1024)  #receive data
-                msg = msg + data
-                done = msg[len(msg) - 8:len(msg)] == 'ericdone'
-            msg = msg[:len(msg) - 8]
-            data = pickle.loads(msg)
-            egrads += data
-            s.close()
-
+    n = len(jobs)
+    if (jobs[0]['theory'] == 'lj'):
+        for i in range(n):
+            egrads += [run_ljgradient(jobs[0])]
+    elif (jobs[0]['theory'] == 'spring'):
+        for i in range(n):
+            egrads += [run_spring(jobs[0])]
     return egrads
+
 
 ##################################################
 #                                                #
@@ -277,21 +144,21 @@ def runcalcs(hostsports, job, xs, mstart=None):
 #          e1,ke1,u1: final total energy, kinetic energy, and potential energy
 #          iterations: number of quasi-Newton steps taken
 #
-def mdverlet_serial(hostsports, job, M, timestep, Perror, maxresiderr, mass, x0, v0, a0, u0):
-    n = len(x0);
+def mdverlet_serial(job, M, timestep, Perror, maxresiderr, mass, x0, v0, a0):
+    n = len(x0)
     nion = n / 3
-    eout = 0.0;
-    keout = 0.0;
+    eout = 0.0
+    keout = 0.0
     uout = 0.0
-    x1 = [0] * n;
-    v1 = [0] * n;
+    x1 = [0] * n
+    v1 = [0] * n
     a1 = [0] * n
     iterations = M
 
     for it in range(M):
         for i in range(n):
             x1[i] = x0[i] + v0[i] * timestep + 0.5 * a0[i] * timestep * timestep
-        result = runcalcs(hostsports, job, [x1])
+        result = runcalcs(job, [x1])
         u1 = result[0][0]
         for ii in range(nion):
             a1[3 * ii] = result[0][1][3 * ii] / mass[ii]
@@ -311,7 +178,6 @@ def mdverlet_serial(hostsports, job, M, timestep, Perror, maxresiderr, mass, x0,
     eout = uout + keout
 
     return (x1, v1, a1, eout, keout, uout, iterations)
-
 
 
 ###########################################################################
@@ -334,7 +200,6 @@ else:
     mult = eval(raw_input("Enter mult: "))  #1
     charge = eval(raw_input("Enter charge: "))  #0
 
-islinear = eval(raw_input("Is this a linear molecule? "))  #False
 print
 timestep = eval(raw_input("Enter timestep in au: "))  #5.0
 m = eval(raw_input("Enter length of parallel time segment (M): "))  #10
@@ -344,28 +209,28 @@ residerr = eval(raw_input("Enter maximum residual error (residerr): "))  #1.0e-4
 
 ## read in xyzfile ##
 xyzfile = open(xyzfilename0, 'r')
-symbols = [];
-x0 = [];
-v0 = [];
+symbols = []
+x0 = []
+v0 = []
 mass = []
 nion = eval(xyzfile.readline())
 xyzfile.readline()
 for ii in range(nion):
     line = xyzfile.readline().split()
-    sym = line[0].lower().capitalize();
+    sym = line[0].lower().capitalize()
     symbols.append(sym)
-    i = def_symbols.index(sym);
+    i = def_symbols.index(sym)
     mass.append(def_masses[i] * 1822.89)
-    x0.append(eval(line[1]) / 0.529177);
-    x0.append(eval(line[2]) / 0.529177);
+    x0.append(eval(line[1]) / 0.529177)
+    x0.append(eval(line[2]) / 0.529177)
     x0.append(eval(line[3]) / 0.529177)
     if (len(line) == 7):
-        v0.append(eval(line[4]) / 0.529177);
-        v0.append(eval(line[5]) / 0.529177);
+        v0.append(eval(line[4]) / 0.529177)
+        v0.append(eval(line[5]) / 0.529177)
         v0.append(eval(line[6]) / 0.529177)
     else:
-        v0.append(0.0);
-        v0.append(0.0);
+        v0.append(0.0)
+        v0.append(0.0)
         v0.append(0.0)
 xyzfile.close()
 
@@ -389,14 +254,12 @@ else:
     nwjob['basis'] = "basis \"ao basis\" cartesian print\n" + "  * library " + basis + "\n" + "end\n"
     nwjob['mult'] = mult
     nwjob['charge'] = charge
-
-print "          >>> job started at       ", util_date(), " <<<"
+print
 print "theory/basis=", theory + "/" + basis
 print "number of atoms                  =", nion
 print "Total number of timesteps        =", Ntimesteps
 print "relative energy threshold        =", Perror
 print "maximum residual error           =", residerr
-print "linear molecule                  =", islinear
 print
 print "initial xyz filename    = ", xyzfilename0
 print "final   xyz filename    = ", xyzfilename1
@@ -422,9 +285,57 @@ xyzfile.write('%d\n\n' % nion)
 for ii in range(nion):
     xyzfile.write('%s  %e %e %e\n' % (
         nwjob['symbols'][ii], x0[3 * ii] * 0.529177, x0[3 * ii + 1] * 0.529177, x0[3 * ii + 2] * 0.529177))
-xyzfile.flus
+xyzfile.flush()
 
+#calculation start
+time1 = time.time()
+a0 = [0] * 3 * nion
+result = runcalcs(nwjob, [x0])
+for ii in range(nion):
+    a0[3 * ii] = result[0][1][3 * ii] / mass[ii]
+    a0[3 * ii + 1] = result[0][1][3 * ii + 1] / mass[ii]
+    a0[3 * ii + 2] = result[0][1][3 * ii + 2] / mass[ii]
 Nit = Ntimesteps / m
+itave = 0
+kesum = 0.0
 for it in range(Nit):
-     x1, v1, a1, e1, ke1, u1, iterations = mdverlet_serial(hostsports, nwjob, m, timestep, Perror, residerr, mass,
-                                                              x0, v0, a0, u0)
+    x1, v1, a1, e1, ke1, u1, iterations = mdverlet_serial(nwjob, m, timestep, Perror, residerr, mass, x0, v0, a0)
+    itave += iterations
+    kesum += ke1
+    keave = kesum / float(it + 1)
+    temp = 2.0 * keave / (3.0 * nion - 6.0)
+    temp /= 3.16679e-6
+    stemp = 1.0
+    tup = ((it + 1) * m, e1, u1, ke1, temp, iterations)
+    print '%8d        %11.6f  %11.6f  %11.6f       %7.1f %11d' % tup
+    sys.stdout.flush()
+
+    for i in range(3 * nion):
+        x0[i] = x1[i]
+        v0[i] = v1[i] * stemp
+        a0[i] = a1[i]
+
+    xyzfile.write('%d\n\n' % nion)
+    for ii in range(nion):
+        xyzfile.write('%s  %e %e %e\n' % (
+            nwjob['symbols'][ii], x0[3 * ii] * 0.529177, x0[3 * ii + 1] * 0.529177, x0[3 * ii + 2] * 0.529177))
+    xyzfile.flush()
+xyzfile.close()
+time2 = time.time()
+print "          >>> iteration ended at   ", util_date(), " <<<"
+print "calculation use ", time2 - time1
+print "final geometry (a.u.):"
+for ii in range(nion):
+    print '%d  %s  %8.4f %8.4f %8.4f  %8.4f %8.4f %8.4f - mass = %8.2f' % (
+        ii + 1, nwjob['symbols'][ii], x0[3 * ii], x0[3 * ii + 1], x0[3 * ii + 2], v0[3 * ii], v0[3 * ii + 1],
+        v0[3 * ii + 2], mass[ii] / 1822.89)
+print
+
+## print out final geometry ##
+xyzfile = open(xyzfilename1, 'w')
+xyzfile.write('%d\n\n' % nion)
+for ii in range(nion):
+    xyzfile.write('%s  %18.9e %18.9e %18.9e %18.9e %18.9e %18.9e\n' % (
+        nwjob['symbols'][ii], x0[3 * ii] * 0.529177, x0[3 * ii + 1] * 0.529177, x0[3 * ii + 2] * 0.529177,
+        v0[3 * ii] * 0.529177, v0[3 * ii + 1] * 0.529177, v0[3 * ii + 2] * 0.529177))
+xyzfile.close()
