@@ -25,7 +25,7 @@ def_masses = [1.007825, 4.00260, 7.0160, 9.01218, 11.00931, 12.0, 14.00307, 15.9
 
 def util_date():
     tt = time.localtime()
-    dd = "%d-%d-%d-%d:%d" % (tt[0], tt[1], tt[2], tt[3], tt[4])
+    dd = "%d-%d-%d %d:%d" % (tt[0], tt[1], tt[2], tt[3], tt[4])
     return dd
 
 
@@ -112,14 +112,21 @@ def runcalcs(job, xs):
     for i in range(mstart, len(xs)):
         jobs.append(job.copy())
         jobs[i - mstart]['xyz'] = xs[i]
-    n = len(jobs)
-    if (jobs[0]['theory'] == 'lj'):
-        for i in range(n):
-            egrads += [run_ljgradient(jobs[0])]
-    elif (jobs[0]['theory'] == 'spring'):
-        for i in range(n):
-            egrads += [run_spring(jobs[0])]
+    #n = len(jobs)
+    # if (jobs[mstart]['theory'] == 'lj'):
+    #     for i in range(n):
+    #         egrads += [run_ljgradient(jobs[i])]
+    # elif (jobs[mstart]['theory'] == 'spring'):
+    #     for i in range(n):
+    #         egrads += [run_spring(jobs[i])]
+    for i in jobs:
+        if i['theory']=='lj':
+            egrads += [run_ljgradient(i)]
+    for i in jobs:
+        if i['theory']=='spring':
+            egrads += [run_spring(i)]
     return egrads
+
 
 
 ##################################################
@@ -154,7 +161,7 @@ def mdverlet_serial(job, M, timestep, Perror, maxresiderr, mass, x0, v0, a0):
     v1 = [0] * n
     a1 = [0] * n
     iterations = M
-
+    print 'M:%d,nion:%d' % (M,nion)
     for it in range(M):
         for i in range(n):
             x1[i] = x0[i] + v0[i] * timestep + 0.5 * a0[i] * timestep * timestep
@@ -173,8 +180,7 @@ def mdverlet_serial(job, M, timestep, Perror, maxresiderr, mass, x0, v0, a0):
     uout = u1
     keout = 0.0
     for ii in range(nion):
-        keout += 0.5 * mass[ii] * (
-            v1[3 * ii] * v1[3 * ii] + v1[3 * ii + 1] * v1[3 * ii + 1] + v1[3 * ii + 2] * v1[3 * ii + 2])
+        keout += 0.5 * mass[ii] * (v1[3 * ii] * v1[3 * ii] + v1[3 * ii + 1] * v1[3 * ii + 1] + v1[3 * ii + 2] * v1[3 * ii + 2])
     eout = uout + keout
 
     return (x1, v1, a1, eout, keout, uout, iterations)
