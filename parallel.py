@@ -1,6 +1,7 @@
 __author__ = 'ShuD'
 
-import sys, time, pickle, math
+import sys, time, math
+import mpi4py.MPI as MPI
 #### atomic symbols ####
 def_symbols = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K',
                'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr',
@@ -95,7 +96,6 @@ def run_ljgradient(job):
             f[3 * jj + 2] += dz * (dvdr / r)
     return (e, f)
 
-
 #######################################################
 #                                                     #
 #                   runcalcs                          #
@@ -160,34 +160,34 @@ def mdverlet_serial(job, M, timestep, Perror, maxresiderr, mass, x0, v0, a0):
     v1 = [0] * n
     a1 = [0] * n
     iterations = M
-    for it in range(M):
-        for i in range(n):
-            x1[i] = x0[i] + v0[i] * timestep + 0.5 * a0[i] * timestep * timestep
-        result = runcalcs(job, [x1])
-        u1 = result[0][0]
-        for ii in range(nion):
-            a1[3 * ii] = result[0][1][3 * ii] / mass[ii]
-            a1[3 * ii + 1] = result[0][1][3 * ii + 1] / mass[ii]
-            a1[3 * ii + 2] = result[0][1][3 * ii + 2] / mass[ii]
-        for i in range(n):
-            v1[i] = v0[i] + 0.5 * (a0[i] + a1[i]) * timestep
-        for i in range(n): x0[i] = x1[i]
-        for i in range(n): v0[i] = v1[i]
-        for i in range(n): a0[i] = a1[i]
 
-    uout = u1
-    keout = 0.0
+    for i in range(n):
+        x1[i] = x0[i] + v0[i] * timestep + 0.5 * a0[i] * timestep * timestep
+    result = runcalcs(job, [x1])
+    u1 = result[0][0]
     for ii in range(nion):
-        keout += 0.5 * mass[ii] * (
-        v1[3 * ii] * v1[3 * ii] + v1[3 * ii + 1] * v1[3 * ii + 1] + v1[3 * ii + 2] * v1[3 * ii + 2])
-    eout = uout + keout
+        a1[3 * ii] = result[0][1][3 * ii] / mass[ii]
+        a1[3 * ii + 1] = result[0][1][3 * ii + 1] / mass[ii]
+        a1[3 * ii + 2] = result[0][1][3 * ii + 2] / mass[ii]
+    for i in range(n):
+        v1[i] = v0[i] + 0.5 * (a0[i] + a1[i]) * timestep
+    for i in range(n): x0[i] = x1[i]
+    for i in range(n): v0[i] = v1[i]
+    for i in range(n): a0[i] = a1[i]
+    if comm_rank == 0:
+        uout = u1
+        keout = 0.0
+        for ii in range(nion):
+            keout += 0.5 * mass[ii] * (v1[3 * ii] * v1[3 * ii] + v1[3 * ii + 1] * v1[3 * ii + 1] + v1[3 * ii + 2] * v1[3 * ii + 2])
+        eout = uout + keout
+        return (x1, v1, a1, eout, keout, uout, iterations)
 
-    return (x1, v1, a1, eout, keout, uout, iterations)
 
 
 ###########################################################################
 ########################### main program ##################################
 ###########################################################################
+
 xyzfilename0 = raw_input("Enter initial xyz filename: ")  #HCl_4water.00.xyz
 xyzfilename1 = raw_input("Enter final xyz filename: ")  #HCl_4water.01.xyz
 xyzfilename2 = raw_input("Enter trajectory xyz filename: ")  #HCl_4water.traj.xyz
@@ -283,6 +283,7 @@ print "          >>> iteration started at ", util_date(), " <<<"
 print
 print "   iter.             Energy    Potential      Kinetic   Temperature  Iterations"
 print "   ----------------------------------------------------------------------------"
+
 sys.stdout.flush()
 
 xyzfile = open(xyzfilename2, 'w')
@@ -291,6 +292,7 @@ for ii in range(nion):
     xyzfile.write('%s  %e %e %e\n' % (
         nwjob['symbols'][ii], x0[3 * ii] * 0.529177, x0[3 * ii + 1] * 0.529177, x0[3 * ii + 2] * 0.529177))
 xyzfile.flush()
+
 
 #calculation start
 time1 = time.time()
@@ -303,6 +305,10 @@ for ii in range(nion):
 Nit = Ntimesteps / m
 itave = 0
 kesum = 0.0
+comm = MPI.COMM_WORLD
+comm_rank = comm.Get_rank()
+comm_size = comm.Get_size()
+
 for it in range(Nit):
     x1, v1, a1, e1, ke1, u1, iterations = mdverlet_serial(nwjob, m, timestep, Perror, residerr, mass, x0, v0, a0)
     itave += iterations

@@ -812,7 +812,7 @@ hostsports = eval(raw_input("Enter hostsports: "))  #['localhost:50001','localho
 xyzfilename0 = raw_input("Enter initial xyz filename: ")  #HCl_4water.00.xyz
 xyzfilename1 = raw_input("Enter final xyz filename: ")  #HCl_4water.01.xyz
 xyzfilename2 = raw_input("Enter trajectory xyz filename: ")  #HCl_4water.traj.xyz
-theory = raw_input("Enter theory: ")  #scf
+theory = raw_input("Enter theory: ")  #scf/mp2
 if (theory == 'lj'):
     epsilon = eval(raw_input("Enter epsilon: "))
     rmin = eval(raw_input("Enter rmin: "))
@@ -832,7 +832,7 @@ timestep = eval(raw_input("Enter timestep in au: "))  #5.0
 m = eval(raw_input("Enter length of parallel time segment (M): "))  #10
 Ntimesteps = eval(raw_input("Enter total number of timesteps (Ntimesteps): "))  #20
 residerr = eval(raw_input("Enter maximum residual error (residerr): "))  #1.0e-4
-ParallelTimeJob = eval(raw_input("Is this a parallel time job? "))  #True
+ParallelTimeJob = eval(raw_input("Is this a parallel time job? "))  #True/False
 print
 precondition = eval(raw_input("Is this a preconditioned parallel time job? "))  #False
 if precondition:

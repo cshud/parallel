@@ -1,0 +1,14 @@
+
+job aborted:
+[ranks] message
+
+[0] process exited without calling finalize
+
+[1-9] terminated
+
+---- error analysis -----
+
+[0] on ShuD-PC
+python ended prematurely and may have crashed. exit code -1
+
+---- error analysis -----
